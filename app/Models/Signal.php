@@ -25,6 +25,7 @@ class Signal extends Model
         'action_required',
         'qualified_for_analysis',
         'published_at',
+        'meta',
     ];
 
     protected $casts = [
@@ -32,6 +33,7 @@ class Signal extends Model
         'action_required' => 'integer',
         'qualified_for_analysis' => 'boolean',
         'published_at' => 'datetime',
+        'meta' => 'array',
     ];
 
     public function domain(): \Illuminate\Database\Eloquent\Relations\BelongsTo

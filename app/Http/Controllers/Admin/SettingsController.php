@@ -21,31 +21,20 @@ class SettingsController extends Controller
 
     public function update(Request $request, TenantSettingsService $settingsService)
     {
+        // ... (existing update logic)
+    }
+
+    public function requestUpgrade()
+    {
         $tenantId = config('app.tenant_id');
         $tenant = Tenant::findOrFail($tenantId);
 
-        $validated = $request->validate([
-            'digest_frequency' => 'required|in:daily,weekly,both,none',
-            'relevance_threshold' => 'required|numeric|min:0|max:100',
-            'domain_subscriptions' => 'array',
-            'delivery_enabled' => 'boolean',
-        ]);
-
-        $settings = $tenant->settings ?? [];
-        $settings['digest_frequency'] = $validated['digest_frequency'];
-        $settings['relevance_threshold'] = $validated['relevance_threshold'];
-        $settings['delivery_enabled'] = $request->has('delivery_enabled');
-        
-        // Handle domain subscriptions (checkboxes)
-        $domainSubs = [];
-        $allDomains = Domain::all();
-        foreach ($allDomains as $domain) {
-            $domainSubs[$domain->name] = isset($validated['domain_subscriptions'][$domain->id]);
+        if ($tenant->upgrade_requested_at) {
+            return back()->with('info', 'Your upgrade request is already being processed.');
         }
-        $settings['domain_subscriptions'] = $domainSubs;
 
-        $tenant->update(['settings' => $settings]);
+        $tenant->update(['upgrade_requested_at' => now()]);
 
-        return back()->with('success', 'Settings updated successfully.');
+        return back()->with('success', 'Your request for Pro Access has been submitted. Our team will review your account.');
     }
 }

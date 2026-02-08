@@ -11,6 +11,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use App\Services\PlanEnforcementService;
+use App\Intelligence\Fetching\SourceFetcherInterface;
 use Illuminate\Support\Facades\Log;
 
 class FetchContentJob implements ShouldQueue
@@ -37,7 +39,8 @@ class FetchContentJob implements ShouldQueue
      */
     public function handle(
         RunRepository $runRepository,
-        SourceFetcherInterface $fetcher
+        SourceFetcherInterface $fetcher,
+        PlanEnforcementService $planService
     ): void {
         $run = $runRepository->start('fetch');
         
@@ -46,6 +49,16 @@ class FetchContentJob implements ShouldQueue
             $query->where('tenant_id', $this->tenantId);
         }
         $sources = $query->get();
+
+        // Enforcement: If student/free, strictly limit per domain if they somehow added more or if limits changed
+        if ($this->tenantId && $tenant = \App\Models\Tenant::find($this->tenantId)) {
+            $limit = config("plans.{$tenant->plan}.max_sources_per_domain", 1000);
+            
+            $sources = $sources->groupBy('domain_id')->flatMap(function($domainSources) use ($limit) {
+                return $domainSources->take($limit);
+            });
+        }
+
         $stats = [
             'sources_processed' => 0,
             'items_fetched' => 0,

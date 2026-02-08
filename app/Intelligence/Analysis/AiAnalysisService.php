@@ -25,9 +25,10 @@ class AiAnalysisService
      * @param string $domain
      * @param string $title
      * @param string $content
+     * @param string $depth
      * @return array
      */
-    public function analyze(string $domain, string $title, string $content): array
+    public function analyze(string $domain, string $title, string $content, string $depth = 'extended'): array
     {
         $apiKey = config('ai.openai.api_key');
         if (!$apiKey) {
@@ -35,7 +36,7 @@ class AiAnalysisService
         }
 
         $model = config('ai.openai.model');
-        $prompt = $this->buildPrompt($domain, $title, $content);
+        $prompt = $this->buildPrompt($domain, $title, $content, $depth);
 
         $response = Http::withToken($apiKey)
             ->timeout(30)
@@ -70,13 +71,17 @@ class AiAnalysisService
     }
 
     /**
-     * Build the prompt based on domain.
+     * Build the prompt based on domain and depth.
      */
-    protected function buildPrompt(string $domain, string $title, string $content): string
+    protected function buildPrompt(string $domain, string $title, string $content, string $depth = 'extended'): string
     {
         $templates = config('ai.prompts');
         $template = $templates[$domain] ?? $templates['default'];
         
+        $depthInstruction = $depth === 'basic' 
+            ? "Provide only a concise summary and immediate implications. Do not perform extended strategic analysis."
+            : "Provide a comprehensive summary, deep strategic implications, and clear action recommendations.";
+
         // Clean content to avoid prompt injection or overflow (trim to 4000 chars roughly)
         $cleanContent = Str::limit($content, 4000);
 
@@ -84,6 +89,7 @@ class AiAnalysisService
             '{domain}' => $domain,
             '{title}' => $title,
             '{content}' => $cleanContent,
+            '{depth_instruction}' => $depthInstruction,
             '{format_instruction}' => config('ai.format_instruction'),
         ]);
     }

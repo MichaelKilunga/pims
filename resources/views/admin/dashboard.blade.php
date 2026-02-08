@@ -1,60 +1,127 @@
 @extends('layouts.admin')
 
-@section('title', 'Situational Awareness')
+@section('title')
+    Situational Awareness 
+    <span class="badge bg-secondary ms-2 align-middle" style="font-size: 0.75rem;">
+        {{ strtoupper($plan) }} PLAN
+    </span>
+@endsection
 
 @section('content')
-<div class="grid">
-    <div class="card stat-card">
-        <h3>Total Signals (This Week)</h3>
-        <p>{{ $stats['total'] }}</p>
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <h6 class="card-title text-muted text-uppercase small fw-bold">Total Signals (Week)</h6>
+                <p class="h2 fw-bold mb-0">{{ $stats['total'] }}</p>
+            </div>
+        </div>
     </div>
-    <div class="card stat-card">
-        <h3>🚨 ACT (Critical)</h3>
-        <p style="color: var(--danger)">{{ $stats['act'] }}</p>
+    <div class="col-md-3">
+        <div class="card h-100 border-start border-danger border-4">
+            <div class="card-body">
+                <h6 class="card-title text-danger text-uppercase small fw-bold">🚨 ACT</h6>
+                <p class="h2 fw-bold mb-0">{{ $stats['act'] }}</p>
+            </div>
+        </div>
     </div>
-    <div class="card stat-card">
-        <h3>🟠 WATCH (Priority)</h3>
-        <p style="color: var(--warning)">{{ $stats['watch'] }}</p>
+    <div class="col-md-3">
+        <div class="card h-100 border-start border-warning border-4">
+            <div class="card-body">
+                <h6 class="card-title text-warning text-uppercase small fw-bold">🟠 WATCH</h6>
+                <p class="h2 fw-bold mb-0">{{ $stats['watch'] }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <h6 class="card-title text-muted text-uppercase small fw-bold">Domains</h6>
+                <p class="h2 fw-bold mb-0">
+                    {{ $domainUsage['used'] }}<span class="h5 text-muted ms-1"> / {{ $domainUsage['limit'] }}</span>
+                </p>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="grid">
-    <div class="card">
-        <h3>AI Budget Utilization</h3>
-        <div style="font-size: 2rem; font-weight: 700; margin: 1rem 0;">
-            ${{ number_format($budget['used'], 2) }} / <span style="color: var(--text-muted)">${{ number_format($budget['limit'], 2) }}</span>
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">AI Budget Utilization</div>
+            <div class="card-body">
+                <div class="h2 fw-bold mb-2">
+                    ${{ number_format($budget['used'], 2) }} <span class="h5 text-muted ms-1">/ ${{ number_format($budget['limit'], 2) }}</span>
+                </div>
+                <div class="progress mb-3" style="height: 10px;">
+                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ min(100, $budget['percent']) }}%;" aria-valuenow="{{ $budget['percent'] }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <p class="text-muted small mb-0">
+                    {{ round($budget['percent'], 1) }}% of monthly cap consumed.
+                </p>
+            </div>
         </div>
-        <div style="background: #e2e8f0; height: 10px; border-radius: 5px; overflow: hidden; margin-bottom: 1rem;">
-            <div style="background: var(--accent-color); width: {{ min(100, $budget['percent']) }}%; height: 100%;"></div>
-        </div>
-        <p style="color: var(--text-muted); font-size: 0.875rem;">
-            {{ round($budget['percent'], 1) }}% of monthly budget consumed.
-        </p>
     </div>
 
-    <div class="card">
-        <h3>System Health</h3>
-        <ul style="list-style: none; padding: 0; margin: 0;">
-            <li style="margin-bottom: 1rem; display: flex; justify-content: space-between;">
-                <span>Latest Content Fetch</span>
-                <strong>{{ $lastRuns['fetch']?->completed_at?->diffForHumans() ?? 'Never' }}</strong>
-            </li>
-            <li style="margin-bottom: 1rem; display: flex; justify-content: space-between;">
-                <span>Last Intelligence Scan</span>
-                <strong>{{ $lastRuns['scoring']?->completed_at?->diffForHumans() ?? 'Never' }}</strong>
-            </li>
-            <li style="display: flex; justify-content: space-between;">
-                <span>Last Briefing Sent</span>
-                <strong>{{ $lastRuns['delivery']?->completed_at?->diffForHumans() ?? 'Never' }}</strong>
-            </li>
-        </ul>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">Plan Boundaries</div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span>Digest Frequency</span>
+                        <span class="fw-bold">{{ in_array('daily', $limits['digest_frequencies']) ? 'Daily + Weekly' : 'Weekly Only' }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span>Analysis Depth</span>
+                        <span class="fw-bold">{{ ucfirst($limits['ai_depth']) }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span>Keyword Tuning</span>
+                        <span class="badge {{ $limits['features']['custom_keywords'] ? 'bg-success' : 'bg-secondary' }}">
+                            {{ $limits['features']['custom_keywords'] ? 'Enabled' : 'Pro Only' }}
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="card">
-    <header style="margin-bottom: 1rem;">
-        <h3>Pipeline Status</h3>
-    </header>
-    <p style="color: var(--text-muted)">PIMS is currently running autonomously. Your next digest is scheduled for 06:00 AM.</p>
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">Pipeline Health</div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span>Last Fetch</span>
+                        <span class="fw-bold">{{ $lastRuns['fetch']?->completed_at?->diffForHumans() ?? 'Never' }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span>Last Analysis</span>
+                        <span class="fw-bold">{{ $lastRuns['scoring']?->completed_at?->diffForHumans() ?? 'Never' }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span>Last Briefing</span>
+                        <span class="fw-bold">{{ $lastRuns['delivery']?->completed_at?->diffForHumans() ?? 'Never' }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100 border-start border-primary border-4">
+            <div class="card-header">System Status</div>
+            <div class="card-body">
+                <p class="text-muted">PIMS is currently running autonomously. Next weekly summary is scheduled for Monday at 07:00 AM.</p>
+                @if($tenant->plan === 'student')
+                    <div class="alert alert-info py-2 small mb-0">
+                        <strong>Student Plan Active:</strong> AI depth optimized for high-level synthesis and cost-efficiency.
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
 </div>
 @endsection

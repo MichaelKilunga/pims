@@ -14,6 +14,8 @@ class DashboardController extends Controller
     {
         $tenantId = config('app.tenant_id');
         $tenant = Tenant::findOrFail($tenantId);
+        $plan = $tenant->plan ?? 'free';
+        $limits = config("plans.{$plan}");
 
         // 1. Weekly Stats
         $stats = [
@@ -30,19 +32,25 @@ class DashboardController extends Controller
 
         $budget = [
             'used' => $monthlyCost,
-            'limit' => (float) $tenant->ai_monthly_budget_usd,
-            'percent' => $tenant->ai_monthly_budget_usd > 0 
-                ? ($monthlyCost / $tenant->ai_monthly_budget_usd) * 100 
+            'limit' => (float) $limits['ai_monthly_budget'],
+            'percent' => $limits['ai_monthly_budget'] > 0 
+                ? ($monthlyCost / $limits['ai_monthly_budget']) * 100 
                 : 0,
         ];
 
-        // 3. Last Run Status
+        // 3. Domain Usage
+        $domainUsage = [
+            'used' => $tenant->domains()->count(),
+            'limit' => $limits['max_domains'],
+        ];
+
+        // 4. Last Run Status
         $lastRuns = [
             'fetch' => Run::where('type', 'fetch')->latest()->first(),
-            'scoring' => Run::where('type', 'analysis')->whereNotNull('completed_at')->latest()->first(), // Scoring is part of analysis run in some jobs, or separate
+            'scoring' => Run::where('type', 'analysis')->whereNotNull('completed_at')->latest()->first(),
             'delivery' => Run::where('type', 'delivery')->latest()->first(),
         ];
 
-        return view('admin.dashboard', compact('tenant', 'stats', 'budget', 'lastRuns'));
+        return view('admin.dashboard', compact('tenant', 'stats', 'budget', 'domainUsage', 'limits', 'plan'));
     }
 }

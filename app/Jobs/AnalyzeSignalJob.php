@@ -11,6 +11,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use App\Services\PlanEnforcementService;
 use Illuminate\Support\Facades\Log;
 
 class AnalyzeSignalJob implements ShouldQueue
@@ -35,21 +36,18 @@ class AnalyzeSignalJob implements ShouldQueue
      */
     public function handle(
         RunRepository $runRepository,
-        AiAnalysisService $aiService
+        AiAnalysisService $aiService,
+        PlanEnforcementService $planService
     ): void {
         $run = $runRepository->start('analysis');
         
         $tenantId = $this->tenantId ?: config('app.tenant_id');
         $tenant = \App\Models\Tenant::find($tenantId);
 
-        if ($tenant && !$aiService->isWithinBudget($tenant)) {
-            $runRepository->complete($run, 0, [
-                'status' => 'blocked_budget',
-                'stats' => ['processed' => 0, 'failed' => 0]
-            ]);
-            Log::warning("AI Analysis blocked for Tenant {$tenant->id} due to budget limits.");
-            return;
-        }
+        $depth = $tenant ? $planService->getAiDepth($tenant) : 'extended';
+
+        // Check if run is starting blocked
+        $isBlocked = $tenant && !$planService->can($tenant, 'analyze_ai');
 
         // Find qualified signals that haven't been analyzed yet
         $query = Signal::where('qualified_for_analysis', true)
@@ -59,21 +57,34 @@ class AnalyzeSignalJob implements ShouldQueue
             $query->where('tenant_id', $tenantId);
         }
 
-        $signals = $query->get();
+        $signals = $query->limit(50)->get();
 
         $stats = [
             'processed' => 0,
             'failed' => 0,
+            'skipped' => 0,
             'total_cost' => 0,
             'total_tokens' => 0,
         ];
 
         foreach ($signals as $signal) {
             try {
+                // Enforcement check per signal (in case it became blocked mid-run)
+                if ($isBlocked || ($tenant && !$planService->can($tenant, 'analyze_ai'))) {
+                    $isBlocked = true;
+                    $signal->update([
+                        'implications' => 'ANALYSIS_SKIPPED_PLAN_LIMIT',
+                        'meta' => array_merge($signal->meta ?? [], ['status' => 'analysis_skipped_plan_limit'])
+                    ]);
+                    $stats['skipped']++;
+                    continue;
+                }
+
                 $result = $aiService->analyze(
                     $signal->domain->name,
                     $signal->title,
-                    $signal->summary // Current 'summary' is the normalized body
+                    $signal->summary,
+                    $depth
                 );
 
                 $signal->update([

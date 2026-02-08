@@ -12,6 +12,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use App\Services\PlanEnforcementService;
 use Illuminate\Support\Facades\Log;
 
 class DiscoverSourcesJob implements ShouldQueue
@@ -40,7 +41,8 @@ class DiscoverSourcesJob implements ShouldQueue
     public function handle(
         RunRepository $runRepository,
         RssDiscoveryService $rssService,
-        SearchDiscoveryService $searchService
+        SearchDiscoveryService $searchService,
+        PlanEnforcementService $planService
     ): void {
         $domain = Domain::find($this->domainId);
         if (!$domain) {
@@ -50,6 +52,17 @@ class DiscoverSourcesJob implements ShouldQueue
 
         $run = $runRepository->start('discovery');
         $runRepository->update($run, ['meta' => ['domain' => $domain->name]]);
+
+        if ($domain->tenant_id && $tenant = $domain->tenant) {
+            if (!$planService->can($tenant, 'add_source', ['domain_id' => $domain->id])) {
+                $runRepository->complete($run, 0, [
+                    'status' => 'blocked_plan_limit',
+                    'reason' => 'Source limit reached for this domain on the ' . $tenant->plan . ' plan.'
+                ]);
+                Log::warning("Discovery blocked for Domain {$domain->id} (Tenant {$tenant->id}) due to plan limits.");
+                return;
+            }
+        }
 
         try {
             $stats = [

@@ -9,7 +9,10 @@
         "php": "^8.2",
         "laravel/framework": "^12.0",
         "laravel/horizon": "^5.43",
+        "laravel/jetstream": "^5.4",
+        "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
+        "livewire/livewire": "^3.6.4",
         "simplepie/simplepie": "^1.9"
     },
     "require-dev": {

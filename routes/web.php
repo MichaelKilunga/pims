@@ -6,7 +6,7 @@ Route::get('/', function () {
     return redirect()->route('admin.dashboard');
 });
 
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
     
     Route::get('/intelligence', [App\Http\Controllers\Admin\IntelligenceController::class, 'index'])->name('intelligence.index');
@@ -17,15 +17,11 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::post('/settings', [App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('settings.update');
 
     Route::get('/usage', [App\Http\Controllers\Admin\UsageController::class, 'index'])->name('usage.index');
+    Route::post('/upgrade/request', [App\Http\Controllers\Admin\SettingsController::class, 'requestUpgrade'])->name('upgrade.request');
 });
 
-// Auth Routes (Minimal for now)
-Route::get('/login', function() {
-    // For demo: automatically log in the first user
-    $user = \App\Models\User::first();
-    if ($user) {
-        auth()->login($user);
-        return redirect()->route('admin.dashboard');
-    }
-    return "No user found to auto-login. Please seed the database.";
-})->name('login');
+// Onboarding Flow
+Route::middleware(['auth', 'verified'])->prefix('onboarding')->name('onboarding.')->group(function () {
+    Route::get('/student', [App\Http\Controllers\Admin\OnboardingController::class, 'student'])->name('student');
+    Route::post('/student', [App\Http\Controllers\Admin\OnboardingController::class, 'storeStudent'])->name('student.store');
+});

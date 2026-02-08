@@ -33,11 +33,11 @@ return [
     |--------------------------------------------------------------------------
     */
     'prompts' => [
-        'default' => "Analyze the following intelligence signal for the '{domain}' domain.\n\nTitle: {title}\nContent: {content}\n\nProvide the following in JSON format:\n{\n  \"summary\": \"Concise 2-sentence summary of what happened.\",\n  \"implications\": \"What this means for strategy or risk (2-3 sentences).\",\n  \"action_required\": 0|1|2\n}\n\nAction Required Mapping:\n0: Ignore (Routine news)\n1: Watch (Monitor for developments)\n2: Act (Requires immediate strategic review or response)",
+        'default' => "Analyze the following intelligence signal for the '{domain}' domain.\n\nTitle: {title}\nContent: {content}\n\n{depth_instruction}\n\nProvide the following in JSON format:\n{\n  \"summary\": \"Concise 2-sentence summary of what happened.\",\n  \"implications\": \"What this means for strategy or risk (2-3 sentences).\",\n  \"action_required\": 0|1|2\n}\n\nAction Required Mapping:\n0: Ignore (Routine news)\n1: Watch (Monitor for developments)\n2: Act (Requires immediate strategic review or response)",
         
-        'Geopolitics' => "You are a senior geopolitical analyst. Analyze this signal for '{domain}'. Focus on regional stability, treaty implications, and power shifts.\n\nTitle: {title}\nContent: {content}\n\n{format_instruction}",
+        'Geopolitics' => "You are a senior geopolitical analyst. Analyze this signal for '{domain}'. Focus on regional stability, treaty implications, and power shifts.\n\nTitle: {title}\nContent: {content}\n\n{depth_instruction}\n\n{format_instruction}",
         
-        'Finance & Economics' => "You are an economic strategist. Analyze this signal for '{domain}'. Focus on market volatility, inflationary pressure, and central bank reactions.\n\nTitle: {title}\nContent: {content}\n\n{format_instruction}",
+        'Finance & Economics' => "You are an economic strategist. Analyze this signal for '{domain}'. Focus on market volatility, inflationary pressure, and central bank reactions.\n\nTitle: {title}\nContent: {content}\n\n{depth_instruction}\n\n{format_instruction}",
     ],
 
     'format_instruction' => "Provide the analysis in strictly valid JSON format with keys: 'summary', 'implications', and 'action_required' (integer 0, 1, or 2).",
