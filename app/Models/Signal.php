@@ -21,12 +21,14 @@ class Signal extends Model
         'summary',
         'implications',
         'action_required',
+        'qualified_for_analysis',
         'published_at',
     ];
 
     protected $casts = [
         'relevance_score' => 'decimal:2',
         'action_required' => 'integer',
+        'qualified_for_analysis' => 'boolean',
         'published_at' => 'datetime',
     ];
 
