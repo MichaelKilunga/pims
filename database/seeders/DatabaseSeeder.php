@@ -21,5 +21,14 @@ class DatabaseSeeder extends Seeder
             TenantSeeder::class,
             DomainSeeder::class,
         ]);
+        $tenant = \App\Models\Tenant::first();
+        if ($tenant) {
+            \App\Models\User::factory()->create([
+                'name' => 'Admin User',
+                'email' => 'admin@pims.com',
+                'password' => bcrypt('password'),
+                'tenant_id' => $tenant->id,
+            ]);
+        }
     }
 }
