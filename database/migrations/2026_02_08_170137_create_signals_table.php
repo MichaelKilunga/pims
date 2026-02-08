@@ -14,9 +14,11 @@ return new class extends Migration
         Schema::create('signals', function (Blueprint $table) {
             $table->id();
             $table->foreignId('domain_id')->constrained()->onDelete('cascade');
+            $table->foreignId('source_id')->constrained()->onDelete('cascade');
             $table->string('title');
-            $table->string('source');
+            $table->string('source'); // Keep as descriptive source name if needed, or remove? I'll keep it for now but the FK is primary.
             $table->string('url');
+            $table->string('fingerprint')->unique();
             $table->decimal('relevance_score', 5, 2)->default(0);
             $table->text('summary')->nullable();
             $table->text('implications')->nullable();

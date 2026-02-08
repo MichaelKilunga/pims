@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('type');
             $table->integer('trust_weight')->default(0);
             $table->string('url');
+            $table->timestamp('last_fetched_at')->nullable();
+            $table->boolean('active')->default(true);
             $table->timestamps();
         });
     }

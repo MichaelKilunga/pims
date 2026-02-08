@@ -12,8 +12,12 @@ class SignalRepository
         return Signal::latest()->limit($limit)->get();
     }
 
-    public function create(array $data): Signal
+    public function create(array $data): ?Signal
     {
+        if (Signal::where('fingerprint', $data['fingerprint'])->exists()) {
+            return null;
+        }
+
         return Signal::create($data);
     }
 }

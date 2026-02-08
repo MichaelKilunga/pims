@@ -13,9 +13,12 @@ return new class extends Migration
     {
         Schema::create('runs', function (Blueprint $table) {
             $table->id();
+            $table->string('type')->index();
+            $table->string('status')->default('pending');
             $table->timestamp('started_at')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->integer('findings_count')->default(0);
+            $table->json('meta')->nullable();
             $table->timestamps();
         });
     }

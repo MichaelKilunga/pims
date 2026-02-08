@@ -13,9 +13,11 @@ class Signal extends Model
 
     protected $fillable = [
         'domain_id',
+        'source_id',
         'title',
         'source',
         'url',
+        'fingerprint',
         'relevance_score',
         'summary',
         'implications',
@@ -32,5 +34,10 @@ class Signal extends Model
     public function domain(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Domain::class);
+    }
+
+    public function source(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Source::class);
     }
 }
