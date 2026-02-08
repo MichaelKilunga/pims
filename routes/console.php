@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schedule;
 use App\Jobs\FetchContentJob;
 use App\Jobs\DiscoverSourcesJob;
 use App\Jobs\ScoreRelevanceJob;
+use App\Jobs\AnalyzeSignalJob;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -13,4 +14,5 @@ Artisan::command('inspire', function () {
 
 Schedule::command('pims:monitor')->hourly()->withoutOverlapping();
 Schedule::job(new FetchContentJob)->daily();
-Schedule::job(new ScoreRelevanceJob)->dailyAt('01:00'); // Run after daily fetch
+Schedule::job(new ScoreRelevanceJob)->dailyAt('01:00'); 
+Schedule::job(new AnalyzeSignalJob)->dailyAt('02:00'); // Run after scoring
