@@ -11,7 +11,7 @@ class Source extends Model
     /** @use HasFactory<\Database\Factories\SourceFactory> */
     use HasFactory;
 
-    protected $fillable = ['domain_id', 'type', 'trust_weight', 'url', 'last_fetched_at', 'active'];
+    protected $fillable = ['domain_id', 'type', 'trust_weight', 'url', 'last_fetched_at', 'active', 'failure_count'];
 
     protected $casts = [
         'last_fetched_at' => 'datetime',
