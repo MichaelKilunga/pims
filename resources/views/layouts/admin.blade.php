@@ -29,6 +29,11 @@
             <a href="{{ route('admin.intelligence.index') }}" class="nav-link {{ request()->routeIs('admin.intelligence.*') ? 'active' : '' }}">
                 Intelligence Feed
             </a>
+            @if(auth()->user()->isOwner())
+                <a href="{{ route('admin.domains.index') }}" class="nav-link {{ request()->routeIs('admin.domains.*') ? 'active' : '' }}">
+                    Strategy Domains
+                </a>
+            @endif
             <a href="{{ route('admin.usage.index') }}" class="nav-link {{ request()->routeIs('admin.usage.*') ? 'active' : '' }}">
                 AI Usage
             </a>

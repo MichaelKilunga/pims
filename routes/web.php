@@ -3,7 +3,17 @@
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
+    return view('welcome');
+});
+
+Route::get('/dashboard', function () {
     return redirect()->route('admin.dashboard');
+})->name('dashboard');
+
+// Setup Wizard (Mandatory for new owners)
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/setup', [App\Http\Controllers\Admin\SetupController::class, 'index'])->name('setup.index');
+    Route::post('/setup', [App\Http\Controllers\Admin\SetupController::class, 'store'])->name('setup.store');
 });
 
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
@@ -18,6 +28,12 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
 
     Route::get('/usage', [App\Http\Controllers\Admin\UsageController::class, 'index'])->name('usage.index');
     Route::post('/upgrade/request', [App\Http\Controllers\Admin\SettingsController::class, 'requestUpgrade'])->name('upgrade.request');
+
+    // Dynamic Domain Management (Owner Only)
+    Route::get('/domains', [App\Http\Controllers\Admin\DomainController::class, 'index'])->name('domains.index');
+    Route::post('/domains', [App\Http\Controllers\Admin\DomainController::class, 'store'])->name('domains.store');
+    Route::delete('/domains/{domain}', [App\Http\Controllers\Admin\DomainController::class, 'destroy'])->name('domains.destroy');
+    Route::post('/domains/{domain}/toggle', [App\Http\Controllers\Admin\DomainController::class, 'toggle'])->name('domains.toggle');
 });
 
 // Onboarding Flow

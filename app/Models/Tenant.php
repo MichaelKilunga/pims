@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Tenant extends Model
 {
@@ -16,12 +17,15 @@ class Tenant extends Model
         'ai_monthly_budget_usd',
         'active',
         'settings',
+        'owner_id',
+        'setup_completed_at',
     ];
 
     protected $casts = [
         'active' => 'boolean',
         'ai_monthly_budget_usd' => 'decimal:2',
         'settings' => 'array',
+        'setup_completed_at' => 'datetime',
     ];
 
     /**
@@ -48,11 +52,16 @@ class Tenant extends Model
         return $this->hasMany(Signal::class);
     }
 
-    /**
-     * Runs owned by this tenant.
-     */
     public function runs(): HasMany
     {
         return $this->hasMany(Run::class);
+    }
+
+    /**
+     * The user who owns this tenant.
+     */
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'owner_id');
     }
 }

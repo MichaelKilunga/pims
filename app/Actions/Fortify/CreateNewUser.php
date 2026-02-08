@@ -27,13 +27,31 @@ class CreateNewUser implements CreatesNewUsers
             'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['accepted', 'required'] : '',
         ])->validate();
 
-        $tenant = Tenant::first() ?? Tenant::create(['name' => 'Default Organization', 'plan' => 'student']);
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($input) {
+            // 1. Create the tenant first
+            $tenant = Tenant::create([
+                'name' => $input['name'] . "'s Organization", // Placeholder, updated in setup
+                'plan' => 'pro', // Founder mode default
+                'settings' => [
+                    'delivery_enabled' => true,
+                    'digest_frequency' => 'weekly',
+                    'relevance_threshold' => 40,
+                ]
+            ]);
 
-        return User::create([
-            'name' => $input['name'],
-            'email' => $input['email'],
-            'password' => Hash::make($input['password']),
-            'tenant_id' => $tenant->id,
-        ]);
+            // 2. Create the user as owner
+            $user = User::create([
+                'name' => $input['name'],
+                'email' => $input['email'],
+                'password' => Hash::make($input['password']),
+                'tenant_id' => $tenant->id,
+                'role' => 'owner',
+            ]);
+
+            // 3. Bind the owner back to the tenant
+            $tenant->update(['owner_id' => $user->id]);
+
+            return $user;
+        });
     }
 }
