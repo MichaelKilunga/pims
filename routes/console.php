@@ -14,14 +14,15 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command('pims:monitor')->hourly()->withoutOverlapping();
+// Monitor command every minute
+// Schedule::command('pims:monitor')->everyMinute()->withoutOverlapping();
 
 if (app()->runningInConsole() && \Illuminate\Support\Facades\Schema::hasTable('tenants')) {
     $tenants = \App\Models\Tenant::where('active', true)->get();
 
     foreach ($tenants as $tenant) {
         // 1. Fetching (Daily)
-        Schedule::job(new FetchContentJob($tenant->id))->daily();
+        Schedule::job(new FetchContentJob($tenant->id))->dailyAt('02:43');
 
         // 2. Discovery (Optional, per domain)
         foreach ($tenant->domains as $domain) {
@@ -29,20 +30,20 @@ if (app()->runningInConsole() && \Illuminate\Support\Facades\Schema::hasTable('t
         }
 
         // 3. Scoring (Daily after Fetch)
-        Schedule::job(new ScoreRelevanceJob($tenant->id))->dailyAt('01:00'); 
+        Schedule::job(new ScoreRelevanceJob($tenant->id))->dailyAt('02:44'); //01:00
 
         // 4. AI Analysis (Daily after Scoring)
-        Schedule::job(new AnalyzeSignalJob($tenant->id))->dailyAt('02:00'); 
+        Schedule::job(new AnalyzeSignalJob($tenant->id))->dailyAt('02:45'); //02:00
 
         // 5. Daily Digest (Respect tenant setting)
         $digestFreq = data_get($tenant->settings, 'digest_frequency', 'both');
         if (in_array($digestFreq, ['daily', 'both'])) {
-            Schedule::job(new SendDailyDigestJob($tenant->id))->dailyAt('06:00');
+            Schedule::job(new SendDailyDigestJob($tenant->id))->dailyAt('02:46'); //06:00
         }
 
         // 6. Weekly Summary (Respect tenant setting)
         if (in_array($digestFreq, ['weekly', 'both'])) {
-            Schedule::job(new SendWeeklySummaryJob($tenant->id))->weeklyOn(1, '07:00');
+            Schedule::job(new SendWeeklySummaryJob($tenant->id))->weeklyOn(1, '02:47'); //07:00
         }
     }
 }

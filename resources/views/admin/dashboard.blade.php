@@ -114,7 +114,8 @@
         <div class="card h-100 border-start border-primary border-4">
             <div class="card-header">System Status</div>
             <div class="card-body">
-                <p class="text-muted">PIMS is currently running autonomously. Next weekly summary is scheduled for Monday at 07:00 AM.</p>
+                <p class="text-muted">PIMS is currently running autonomously. <br>
+                    Next weekly summary is scheduled for Monday at 07:00 AM.</p>
                 @if($tenant->plan === 'student')
                     <div class="alert alert-info py-2 small mb-0">
                         <strong>Student Plan Active:</strong> AI depth optimized for high-level synthesis and cost-efficiency.

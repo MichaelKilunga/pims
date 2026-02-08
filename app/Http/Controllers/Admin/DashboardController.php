@@ -51,6 +51,6 @@ class DashboardController extends Controller
             'delivery' => Run::where('type', 'delivery')->latest()->first(),
         ];
 
-        return view('admin.dashboard', compact('tenant', 'stats', 'budget', 'domainUsage', 'limits', 'plan'));
+        return view('admin.dashboard', compact('tenant', 'stats', 'budget', 'domainUsage', 'limits', 'plan', 'lastRuns'));
     }
 }

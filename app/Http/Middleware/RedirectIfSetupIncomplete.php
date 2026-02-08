@@ -16,9 +16,9 @@ class RedirectIfSetupIncomplete
     public function handle(Request $request, Closure $next): Response
     {
         if (auth()->check() && 
+            auth()->user()->hasVerifiedEmail() &&
             !auth()->user()->tenant->setup_completed_at && 
-            !$request->is('setup*') && 
-            !$request->is('logout')) {
+            !$request->is('setup*', 'logout')) {
             return redirect()->route('setup.index');
         }
 
