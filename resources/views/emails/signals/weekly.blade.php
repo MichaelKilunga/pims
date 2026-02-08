@@ -1,5 +1,8 @@
 <x-mail::message>
 # Weekly Strategic Intelligence Summary
+@if($tenant)
+## Client: {{ $tenant->name }}
+@endif
 ## Week of {{ now()->startOfWeek()->format('M d') }} - {{ now()->endOfWeek()->format('M d, Y') }}
 
 Summary of key trends and critical alerts from the past 7 days.

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Domain;
@@ -9,9 +10,10 @@ use App\Models\Domain;
 class Signal extends Model
 {
     /** @use HasFactory<\Database\Factories\SignalFactory> */
-    use HasFactory;
+    use HasFactory, HasTenant;
 
     protected $fillable = [
+        'tenant_id',
         'domain_id',
         'source_id',
         'title',

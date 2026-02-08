@@ -1,5 +1,8 @@
 <x-mail::message>
 # Daily Intelligence Digest
+@if($tenant)
+## Client: {{ $tenant->name }}
+@endif
 ## {{ now()->format('l, F j, Y') }}
 
 Here is your summarized intelligence for the last 24 hours.

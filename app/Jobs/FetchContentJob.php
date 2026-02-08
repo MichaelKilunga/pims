@@ -27,7 +27,7 @@ class FetchContentJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct()
+    public function __construct(public ?int $tenantId = null)
     {
         $this->onQueue('fetch');
     }
@@ -37,11 +37,15 @@ class FetchContentJob implements ShouldQueue
      */
     public function handle(
         RunRepository $runRepository,
-        RssFetcher $rssFetcher
+        SourceFetcherInterface $fetcher
     ): void {
         $run = $runRepository->start('fetch');
         
-        $sources = Source::where('active', true)->get();
+        $query = Source::where('active', true);
+        if ($this->tenantId) {
+            $query->where('tenant_id', $this->tenantId);
+        }
+        $sources = $query->get();
         $stats = [
             'sources_processed' => 0,
             'items_fetched' => 0,

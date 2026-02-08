@@ -27,7 +27,7 @@ class ScoreRelevanceJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct()
+    public function __construct(public ?int $tenantId = null)
     {
         $this->onQueue('analysis');
     }
@@ -44,7 +44,13 @@ class ScoreRelevanceJob implements ShouldQueue
         // Find signals that haven't been qualified or scored yet
         // In our case, relevance_score defaults to 0. We'll find those with 0.
         // Or better, we could add an 'is_scored' flag, but for now 0 works if we assume 0 means unscored.
-        $signals = Signal::where('relevance_score', 0)->get();
+        $query = Signal::where('relevance_score', 0);
+        
+        if ($this->tenantId) {
+            $query->where('tenant_id', $this->tenantId);
+        }
+        
+        $signals = $query->get();
         
         $stats = [
             'scored' => 0,

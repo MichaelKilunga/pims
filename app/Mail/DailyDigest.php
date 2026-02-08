@@ -17,9 +17,11 @@ class DailyDigest extends Mailable
      * Create a new message instance.
      *
      * @param \Illuminate\Support\Collection $groupedSignals
+     * @param \App\Models\Tenant|null $tenant
      */
     public function __construct(
-        public $groupedSignals
+        public $groupedSignals,
+        public $tenant = null
     ) {}
 
     /**

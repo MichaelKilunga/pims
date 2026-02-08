@@ -16,8 +16,11 @@ class RelevanceScoringService
      */
     public function calculate(Signal $signal): float
     {
+        $tenant = $signal->tenant;
         $domainName = $signal->domain->name;
-        $keywords = config("scoring.keywords.{$domainName}", []);
+        
+        // Tenant-specific keywords or defaults
+        $keywords = data_get($tenant->settings, "keywords.{$domainName}", config("scoring.keywords.{$domainName}", []));
         
         $weights = config('scoring.weights');
         

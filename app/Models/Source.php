@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Domain;
@@ -9,9 +10,11 @@ use App\Models\Domain;
 class Source extends Model
 {
     /** @use HasFactory<\Database\Factories\SourceFactory> */
-    use HasFactory;
+    use HasFactory, HasTenant;
 
-    protected $fillable = ['domain_id', 'type', 'trust_weight', 'url', 'last_fetched_at', 'active', 'failure_count'];
+    protected $fillable = [
+        'tenant_id',
+        'domain_id', 'type', 'trust_weight', 'url', 'last_fetched_at', 'active', 'failure_count'];
 
     protected $casts = [
         'last_fetched_at' => 'datetime',

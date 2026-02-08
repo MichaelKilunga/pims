@@ -25,7 +25,7 @@ class AnalyzeSignalJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct()
+    public function __construct(public ?int $tenantId = null)
     {
         $this->onQueue('analysis');
     }
@@ -39,10 +39,27 @@ class AnalyzeSignalJob implements ShouldQueue
     ): void {
         $run = $runRepository->start('analysis');
         
+        $tenantId = $this->tenantId ?: config('app.tenant_id');
+        $tenant = \App\Models\Tenant::find($tenantId);
+
+        if ($tenant && !$aiService->isWithinBudget($tenant)) {
+            $runRepository->complete($run, 0, [
+                'status' => 'blocked_budget',
+                'stats' => ['processed' => 0, 'failed' => 0]
+            ]);
+            Log::warning("AI Analysis blocked for Tenant {$tenant->id} due to budget limits.");
+            return;
+        }
+
         // Find qualified signals that haven't been analyzed yet
-        $signals = Signal::where('qualified_for_analysis', true)
-            ->whereNull('implications')
-            ->get();
+        $query = Signal::where('qualified_for_analysis', true)
+            ->whereNull('implications');
+            
+        if ($tenantId) {
+            $query->where('tenant_id', $tenantId);
+        }
+
+        $signals = $query->get();
 
         $stats = [
             'processed' => 0,

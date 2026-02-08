@@ -38,10 +38,17 @@ class SendWeeklySummaryJob implements ShouldQueue
     {
         $run = $runRepository->start('delivery');
         
-        $signals = Signal::with('domain')
+        $tenantId = $this->tenantId ?: config('app.tenant_id');
+
+        $query = Signal::with('domain')
             ->where('created_at', '>=', now()->subDays(7))
-            ->whereNotNull('implications')
-            ->get()
+            ->whereNotNull('implications');
+
+        if ($tenantId) {
+            $query->where('tenant_id', $tenantId);
+        }
+
+        $signals = $query->get()
             ->groupBy('domain.name');
 
         if ($signals->isEmpty()) {
@@ -53,7 +60,7 @@ class SendWeeklySummaryJob implements ShouldQueue
         $recipient = config('mail.from.address');
 
         try {
-            Mail::to($recipient)->send(new WeeklySummary($signals));
+            Mail::to($recipient)->send(new WeeklySummary($signals, $tenant));
             
             $runRepository->complete($run, 1, [
                 'stats' => [

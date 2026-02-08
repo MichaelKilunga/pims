@@ -1,13 +1,24 @@
-<?php
-
-namespace App\Intelligence\Analysis;
-
+use App\Models\Tenant;
+use App\Models\Run;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class AiAnalysisService
 {
+    /**
+     * Check if tenant is within their monthly AI budget.
+     */
+    public function isWithinBudget(Tenant $tenant): bool
+    {
+        $monthlyCost = Run::where('tenant_id', $tenant->id)
+            ->where('type', 'analysis')
+            ->where('started_at', '>=', now()->startOfMonth())
+            ->get()
+            ->sum(fn($run) => (float) ($run->meta['stats']['total_cost'] ?? 0));
+
+        return $monthlyCost < (float) $tenant->ai_monthly_budget_usd;
+    }
     /**
      * Analyze a signal using OpenAI.
      *
