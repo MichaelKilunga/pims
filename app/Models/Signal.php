@@ -15,7 +15,6 @@ class Signal extends Model
         'domain_id',
         'source_id',
         'title',
-        'source',
         'url',
         'fingerprint',
         'relevance_score',
@@ -27,7 +26,7 @@ class Signal extends Model
 
     protected $casts = [
         'relevance_score' => 'decimal:2',
-        'action_required' => 'boolean',
+        'action_required' => 'integer',
         'published_at' => 'datetime',
     ];
 
